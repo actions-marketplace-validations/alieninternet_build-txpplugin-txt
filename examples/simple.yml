@@ -38,14 +38,12 @@ jobs:
         uses: actions/checkout@v4
 
       # Build the plugin_v.txt package and an sha256sum hash file, and publish it to the release
+      # folder: The folder where the plugin source files live, defaults to '.' in this case (the root of the repository)
+      # package_filename: When omitted defaults to generating the package filename from the plugin's manifest.json file
+      # release_files: When set to true, files will be published to the release triggering the build (default is false)
       - name: Build and release package
         uses: alieninternet/build-txpplugin-txt@v1
         with:
-	  # The folder where the plugin source files live, in this case the root of the repository
-          folder: '.'
-          # Leave package_filename empty so it will be automatically constructed
-          package_filename: ''
-          # Set release_files to 'true' to automatically attach the resulting files to the release
           release_files: 'true'
         secrets:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
