@@ -24,105 +24,84 @@
 # =============================================================================
 
 name: Build and Release Plugin
-name: Pack and Release Textpattern Plugin
+name: 'Build Textpattern Plugin Package'
+description: 'Downloads and executes the Textpattern plugin packager to produce a plugin package.'
+inputs:
+  folder:
+    description: 'Folder containing the plugin files (should include manifest.json)'
+    required: false
+    default: '.'
+  package_filename:
+    description: 'Optional package filename. If not provided, defaults to <plugin name>_v<version>.txt (version from manifest.json with dots replaced by underscores)'
+    required: false
+  dry_run:
+    description: 'Skip running the packager (for testing purposes)'
+    required: false
+    default: 'false'
+outputs:
+  output_file:
+    description: 'The generated package filename'
+runs:
+  using: "composite"
+  steps:
+    - name: Checkout Repository
+      uses: actions/checkout@v4
 
-# This workflow is designed to be reusable by other repositories
-on:
-  workflow_call:
-    inputs:
-      folder:
-        description: 'Folder to package'
-        required: false
-        default: '.'
-        type: string
-      package_version:
-        description: 'Version of the package (defaults to version from manifest.json)'
-        required: false
-        type: string
-      dry_run:
-        description: 'Skip release upload (for testing)'
-        required: false
-        default: 'false'
-        type: string
-    secrets:
-      GITHUB_TOKEN:
-        required: true
+    - name: Setup PHP
+      uses: shivammathur/setup-php@v2
+      with:
+        php-version: '8.0'
 
-jobs:
-  build:
-    runs-on: ubuntu-latest
+    - name: Get Latest Packager Release Info
+      id: get_packager
+      run: |
+        LATEST_RELEASE=$(gh api repos/alieninternet/ais_txpplugin_packager/releases/latest)
+        PHAR_URL=$(echo "$LATEST_RELEASE" | jq -r '.assets[] | select(.name | endswith(".phar")) | .browser_download_url')
+        CHECKSUM_URL=$(echo "$LATEST_RELEASE" | jq -r '.assets[] | select(.name | endswith(".sha256sum")) | .browser_download_url')
+        echo "PHAR_URL=$PHAR_URL" >> $GITHUB_ENV
+        echo "CHECKSUM_URL=$CHECKSUM_URL" >> $GITHUB_ENV
+      env:
+        GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-    steps:
-      # Checkout the repository's code
-      - name: Checkout Repository
-        uses: actions/checkout@v4
+    - name: Generate Temporary Filename
+      id: generate_uuid
+      run: |
+        UUID=$(uuidgen)
+        echo "UUID=$UUID" >> $GITHUB_ENV
+        PHAR_FILE=ais_txpplugin_package_${UUID}.phar
+        CHECKSUM_FILE=ais_txpplugin_package_${UUID}.phar.sha256
+        echo "PHAR_FILE=${PHAR_FILE}" >> $GITHUB_ENV
+        echo "CHECKSUM_FILE=${CHECKSUM_FILE}" >> $GITHUB_ENV
+      shell: bash
 
-      # Fetch the latest release of the packager and its checksum
-      - name: Get Latest Packager Release Info
-        run: |
-          LATEST_RELEASE=$(gh api repos/alieninternet/ais_txpplugin_packager/releases/latest)
-          PHAR_URL=$(echo "$LATEST_RELEASE" | jq -r '.assets[] | select(.name | endswith(".phar")) | .browser_download_url')
-          CHECKSUM_URL=$(echo "$LATEST_RELEASE" | jq -r '.assets[] | select(.name | endswith(".sha256sum")) | .browser_download_url')
-          echo "PHAR_URL=$PHAR_URL" >> $GITHUB_ENV
-          echo "CHECKSUM_URL=$CHECKSUM_URL" >> $GITHUB_ENV
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+    - name: Download Packager PHAR and Checksum
+      run: |
+        curl -L -o "${{ env.PHAR_FILE }}" "$PHAR_URL"
+        curl -L -o "${{ env.CHECKSUM_FILE }}" "$CHECKSUM_URL"
 
-      # Download the PHAR and its checksum
-      - name: Download Packager PHAR and Checksum
-        run: |
-          curl -L -o ais_txpplugin_packager.phar "$PHAR_URL"
-          curl -L -o ais_txpplugin_packager.phar.sha256 "$CHECKSUM_URL"
+    - name: Verify Packager Integrity
+      run: |
+        sha256sum -c "${{ env.CHECKSUM_FILE }}"
 
-      # Verify the integrity of the PHAR
-      - name: Verify Packager Integrity
-        run: |
-          sha256sum -c ais_txpplugin_packager.phar.sha256
+    - name: Make Packager Executable
+      run: chmod +x "${{ env.PHAR_FILE }}"
 
-      # Make the PHAR executable
-      - name: Make Packager Executable
-        run: chmod +x ais_txpplugin_packager.phar
-
-      # Extract version from manifest.json if not provided
-      - name: Determine Package Version
-        run: |
-          if [ -z "${{ inputs.package_version }}" ]; then
-            VERSION=$(jq -r '.version' ${{ inputs.folder }}/manifest.json | sed 's/\./_/g')
-          else
-            VERSION=${{ inputs.package_version }}
-          fi
-          echo "VERSION=$VERSION" >> $GITHUB_ENV
-
-      # Construct expected output filename
-      - name: Construct Output Filename
-        run: |
+    - name: Determine Package Filename
+      id: determine_filename
+      run: |
+        if [ -n "${{ inputs.package_filename }}" ]; then
+          OUTPUT_FILE="${{ inputs.package_filename }}"
+        else
           PACKAGE_NAME=$(jq -r '.name' ${{ inputs.folder }}/manifest.json)
+          VERSION=$(jq -r '.version' ${{ inputs.folder }}/manifest.json | sed 's/\\./_/g')
           OUTPUT_FILE="${PACKAGE_NAME}_v${VERSION}.txt"
-          echo "OUTPUT_FILE=$OUTPUT_FILE" >> $GITHUB_ENV
+        fi
+        echo "OUTPUT_FILE=${OUTPUT_FILE}" >> $GITHUB_ENV
+        echo "::set-output name=output_file::${OUTPUT_FILE}"
+      shell: bash
 
-      # Run the packager over the specified directory
-      - name: Run Plugin Packager
-        run: |
-          ./ais_txpplugin_packager.phar package ${{ inputs.folder }}
-
-      # Calculate SHA256 checksum of the generated plugin file
-      - name: Calculate SHA256 Checksum
-        run: |
-          sha256sum "$OUTPUT_FILE" > plugin_checksum.sha256
-
-      # Get the tag name from the GitHub event
-      - name: Get Tag Name
-        id: get_tag
-        run: echo "::set-output name=tag::${GITHUB_REF#refs/tags/}"
-
-      # Upload the plugin and its checksum to the release (unless dry_run)
-      - name: Upload Release Assets
-        if: ${{ inputs.dry_run != 'true' }}
-        uses: softprops/action-gh-release@v2
-        with:
-          tag_name: ${{ steps.get_tag.outputs.tag }}
-          files: |
-            ${{ env.OUTPUT_FILE }}
-            plugin_checksum.sha256
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+    - name: Run Plugin Packager
+      if: ${{ inputs.dry_run != 'true' }}
+      run: |
+        ./"${{ env.PHAR_FILE }}" package "${{ inputs.folder }}" "${{ env.OUTPUT_FILE }}"
+      shell: bash
