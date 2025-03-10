@@ -136,7 +136,7 @@ runs:
 
     - name: Run Plugin Packager
       run: |
-        ./"${{ env.PHAR_FILE }}" package "${{ inputs.folder }}" "${{ env.OUTPUT_FILE }}"
+        ./"${{ env.PHAR_FILE }}" "${{ inputs.folder }}" "${{ env.OUTPUT_FILE }}"
       shell: bash
 
     - name: Generate Package Checksum File
