@@ -23,8 +23,7 @@
 # @link	      https://github.com/alieninternet/build-txpplugin-txt
 # =============================================================================
 
-name: Build and Release Plugin
-name: 'Build Textpattern Plugin Package'
+name: Build Textpattern Plugin TXT Package
 description: >
   Downloads and executes the Textpattern plugin packager to produce a plugin package.
   Optionally, it can add the resulting files (the TXT package and its SHA256 checksum)
