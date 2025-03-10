@@ -120,15 +120,15 @@ runs:
       run: chmod +x "${{ env.PHAR_FILE }}"
       shell: bash
 
+    # Default package name if missing, using repository name + version string from manifest.json
     - name: Determine Package Filename
       id: determine_filename
       run: |
         if [ -n "${{ inputs.package_filename }}" ]; then
           OUTPUT_FILE="${{ inputs.package_filename }}"
         else
-          # Read the plugin name and version from manifest.json in the provided folder.
-          PLUGIN_NAME=$(jq -r '.name' "${{ inputs.folder }}/manifest.json")
-          VERSION=$(jq -r '.version' "${{ inputs.folder }}/manifest.json" | sed 's/\\./_/g')
+          PLUGIN_NAME=$(basename "${GITHUB_REPOSITORY}")
+          VERSION=$(jq -r '.version' "${{ inputs.folder }}/manifest.json" | sed 's/\./_/g')
           OUTPUT_FILE="${PLUGIN_NAME}_v${VERSION}.txt"
         fi
         echo "OUTPUT_FILE=${OUTPUT_FILE}" >> $GITHUB_ENV
