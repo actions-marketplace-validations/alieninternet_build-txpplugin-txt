@@ -1,0 +1,68 @@
+# =============================================================================
+# build-txpplugin-txt - Build Textpattern plugin as a TXT package GitHub action
+# =============================================================================
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+# 
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+# 
+# You should have received a copy of the GNU General Public License
+# along with this program.  If not, see <https://www.gnu.org/licenses/>.
+#
+# Metadata:
+# @author     Ashley Butcher
+# @copyright  Copyright (c) 2024 Alien Internet Services
+# @license    https://www.gnu.org/licenses/gpl-3.0.html GNU General Public License version 3
+# @version    v1
+# @link	      https://github.com/alieninternet/build-txpplugin-txt
+# =============================================================================
+
+name: Build and Release Plugin
+
+on:
+  push:
+    tags:
+      - '*'
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Download Packager PHAR
+        run: |
+          curl -L -o ais_txpplugin_packager.phar https://github.com/alieninternet/ais_txpplugin_packager/releases/latest/download/ais_txpplugin_packager.phar
+
+      - name: Make Packager Executable
+        run: chmod +x ais_txpplugin_packager.phar
+
+      - name: Run Plugin Packager
+        run: |
+          ./ais_txpplugin_packager.phar package ./src
+
+      - name: Calculate SHA256 Checksum
+        run: |
+          sha256sum *.txt > plugin_checksum.sha256
+
+      - name: Get Tag Name
+        id: get_tag
+        run: echo "::set-output name=tag::${GITHUB_REF#refs/tags/}"
+
+      - name: Upload Release Assets
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ steps.get_tag.outputs.tag }}
+          files: |
+            *.txt
+            plugin_checksum.sha256
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
