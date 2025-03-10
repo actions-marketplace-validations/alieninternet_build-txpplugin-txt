@@ -26,6 +26,7 @@
 name: Build and Release Plugin
 name: Build and Release Plugin
 
+# Trigger this workflow on any new tag push
 on:
   push:
     tags:
@@ -36,9 +37,11 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
+      # Checkout the repository's code
       - name: Checkout Repository
         uses: actions/checkout@v4
 
+      # Fetch the latest release of the packager and its checksum
       - name: Get Latest Packager Release Info
         run: |
           LATEST_RELEASE=$(gh api repos/alieninternet/ais_txpplugin_packager/releases/latest)
@@ -49,36 +52,51 @@ jobs:
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
+      # Download the PHAR and its checksum
       - name: Download Packager PHAR and Checksum
         run: |
           curl -L -o ais_txpplugin_packager.phar "$PHAR_URL"
           curl -L -o ais_txpplugin_packager.phar.sha256 "$CHECKSUM_URL"
 
+      # Verify the integrity of the PHAR
       - name: Verify Packager Integrity
         run: |
           sha256sum -c ais_txpplugin_packager.phar.sha256
 
+      # Make the PHAR executable
       - name: Make Packager Executable
         run: chmod +x ais_txpplugin_packager.phar
 
+      # Extract version from manifest.json and construct expected output filename
+      - name: Extract Version and Construct Filename
+        run: |
+          PACKAGE_NAME=$(jq -r '.name' manifest.json)
+          VERSION=$(jq -r '.version' manifest.json | sed 's/\./_/g')
+          OUTPUT_FILE="${PACKAGE_NAME}_v${VERSION}.txt"
+          echo "OUTPUT_FILE=$OUTPUT_FILE" >> $GITHUB_ENV
+
+      # Run the packager over the root directory
       - name: Run Plugin Packager
         run: |
-          ./ais_txpplugin_packager.phar package ./src
+          ./ais_txpplugin_packager.phar package .
 
+      # Calculate SHA256 checksum of the generated plugin file
       - name: Calculate SHA256 Checksum
         run: |
-          sha256sum *.txt > plugin_checksum.sha256
+          sha256sum "$OUTPUT_FILE" > plugin_checksum.sha256
 
+      # Get the tag name from the GitHub event
       - name: Get Tag Name
         id: get_tag
         run: echo "::set-output name=tag::${GITHUB_REF#refs/tags/}"
 
+      # Upload the plugin and its checksum to the release
       - name: Upload Release Assets
         uses: softprops/action-gh-release@v2
         with:
           tag_name: ${{ steps.get_tag.outputs.tag }}
           files: |
-            *.txt
+            ${{ env.OUTPUT_FILE }}
             plugin_checksum.sha256
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
