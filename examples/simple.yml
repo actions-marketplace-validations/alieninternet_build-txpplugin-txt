@@ -1,0 +1,81 @@
+# =============================================================================
+# Simple example workflow using alieninternet/build-txpplugin-txt GitHub action
+# =============================================================================
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+# 
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+# 
+# You should have received a copy of the GNU General Public License
+# along with this program.  If not, see <https://www.gnu.org/licenses/>.
+#
+# Metadata:
+# @author     Ashley Butcher
+# @copyright  Copyright (c) 2025 Alien Internet Services
+# @license    https://www.gnu.org/licenses/gpl-3.0.html GNU General Public License version 3
+# @version    v1
+# @link	      https://github.com/alieninternet/build-txpplugin-txt
+# =============================================================================
+
+
+name: Release Textpattern Plugin Package v1
+
+on:
+  workflow_call:
+    inputs:
+      folder:
+        description: 'Folder containing the plugin files (should include manifest.json)'
+        required: false
+        default: '.'
+        type: string
+      package_filename:
+        description: 'Optional package filename'
+        required: false
+        type: string
+      dry_run:
+        description: 'Skip release upload (for testing)'
+        required: false
+        default: 'false'
+        type: string
+    secrets:
+      GITHUB_TOKEN:
+        required: true
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Run Packaging Action
+        id: package_action
+        uses: alieninternet/build-txpplugin-txt@v1
+        with:
+          folder: ${{ inputs.folder }}
+          package_filename: ${{ inputs.package_filename }}
+          dry_run: ${{ inputs.dry_run }}
+        secrets:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Calculate SHA256 Checksum
+        run: |
+          sha256sum "${{ steps.package_action.outputs.output_file }}" > plugin_checksum.sha256
+
+      - name: Get Tag Name
+        id: get_tag
+        run: echo "::set-output name=tag::${GITHUB_REF#refs/tags/}"
+
+      - name: Upload Release Assets
+        if: ${{ inputs.dry_run != 'true' }}
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ steps.get_tag.outputs.tag }}
+          files: |
+            ${{ steps.package_action.outputs.output_file }}
+            plugin_checksum.sha256
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
