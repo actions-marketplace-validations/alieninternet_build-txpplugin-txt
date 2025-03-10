@@ -45,5 +45,5 @@ jobs:
         uses: alieninternet/build-txpplugin-txt@v1
         with:
           release_files: 'true'
-        secrets:
+        env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
