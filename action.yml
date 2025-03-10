@@ -142,7 +142,7 @@ runs:
 
     - name: Generate Package Checksum File
       run: |
-        sha256sum "${{ env.OUTPUT_FILE }}" > "${{ env.OUTPUT_FILE }}.sha256sum"
+        sha256sum "${{ env.OUTPUT_FILE }}" > "${{ env.OUTPUT_FILE }}.sha256"
       shell: bash
 
     - name: Upload Release Assets
@@ -152,6 +152,6 @@ runs:
         tag_name: ${{ github.ref_name }}
         files: |
           ${{ env.OUTPUT_FILE }}
-          ${{ env.OUTPUT_FILE }}.sha256sum
+          ${{ env.OUTPUT_FILE }}.sha256
       env:
         GITHUB_TOKEN: ${{ inputs.github_token }}
