@@ -23,59 +23,29 @@
 # @link	      https://github.com/alieninternet/build-txpplugin-txt
 # =============================================================================
 
-
-name: Release Textpattern Plugin Package v1
+name: Release Textpattern Plugin Package (text format)
 
 on:
-  workflow_call:
-    inputs:
-      folder:
-        description: 'Folder containing the plugin files (should include manifest.json)'
-        required: false
-        default: '.'
-        type: string
-      package_filename:
-        description: 'Optional package filename'
-        required: false
-        type: string
-      dry_run:
-        description: 'Skip release upload (for testing)'
-        required: false
-        default: 'false'
-        type: string
-    secrets:
-      GITHUB_TOKEN:
-        required: true
+  release:
+    types: [published]
 
 jobs:
   build:
     runs-on: ubuntu-latest
     steps:
-      - name: Run Packaging Action
-        id: package_action
+      # Check out the repository
+      - name: Check-out repository
+        uses: actions/checkout@v4
+
+      # Build the plugin_v.txt package and an sha256sum hash file, and publish it to the release
+      - name: Build and release package
         uses: alieninternet/build-txpplugin-txt@v1
         with:
-          folder: ${{ inputs.folder }}
-          package_filename: ${{ inputs.package_filename }}
-          dry_run: ${{ inputs.dry_run }}
+	  # The folder where the plugin source files live, in this case the root of the repository
+          folder: '.'
+          # Leave package_filename empty so it will be automatically constructed
+          package_filename: ''
+          # Set release_files to 'true' to automatically attach the resulting files to the release
+          release_files: 'true'
         secrets:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: Calculate SHA256 Checksum
-        run: |
-          sha256sum "${{ steps.package_action.outputs.output_file }}" > plugin_checksum.sha256
-
-      - name: Get Tag Name
-        id: get_tag
-        run: echo "::set-output name=tag::${GITHUB_REF#refs/tags/}"
-
-      - name: Upload Release Assets
-        if: ${{ inputs.dry_run != 'true' }}
-        uses: softprops/action-gh-release@v2
-        with:
-          tag_name: ${{ steps.get_tag.outputs.tag }}
-          files: |
-            ${{ steps.package_action.outputs.output_file }}
-            plugin_checksum.sha256
-        env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
