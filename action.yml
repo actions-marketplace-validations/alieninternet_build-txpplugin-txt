@@ -101,20 +101,19 @@ runs:
         curl -L -o "${{ env.CHECKSUM_FILE }}" "$CHECKSUM_URL"
       shell: bash
 
+    # Package integrity must be done manually as we have downloaded the PHAR with a different filename to mitigate clobbering files
     - name: Verify Packager Integrity
       run: |
-        # Compute the checksum of the downloaded PHAR file
-	computed_checksum=$(sha256sum "${{ env.PHAR_FILE }}" | awk '{print $1}')
-	# Extract the expected checksum from the downloaded checksum file (ignoring the filename since we changed it)
-	expected_checksum=$(awk '{print $1}' "${{ env.CHECKSUM_FILE }}")
+        computed_checksum=$(sha256sum "${{ env.PHAR_FILE }}" | awk '{print $1}')
+        expected_checksum=$(awk '{print $1}' "${{ env.CHECKSUM_FILE }}")
         echo "Computed checksum: $computed_checksum"
-	echo "Expected checksum: $expected_checksum"
-	if [ "$computed_checksum" != "$expected_checksum" ]; then
-	  echo "PHAR checksum verification failed"
-	  exit 1
-	else
-	  echo "PHAR checksum OK"
-	fi
+        echo "Expected checksum: $expected_checksum"
+        if [ "$computed_checksum" != "$expected_checksum" ]; then
+          echo "PHAR checksum verification failed"
+          exit 1
+        else
+          echo "PHAR checksum OK"
+        fi
       shell: bash
 
     - name: Make Packager Executable
