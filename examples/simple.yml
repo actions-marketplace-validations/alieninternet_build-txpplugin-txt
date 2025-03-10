@@ -42,8 +42,6 @@ jobs:
       # package_filename: When omitted defaults to generating the package filename from the plugin's manifest.json file
       # release_files: When set to true, files will be published to the release triggering the build (default is false)
       - name: Build and release package
-        uses: alieninternet/build-txpplugin-txt@v1
+        uses: alieninternet/build-txpplugin-txt@main
         with:
           release_files: 'true'
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

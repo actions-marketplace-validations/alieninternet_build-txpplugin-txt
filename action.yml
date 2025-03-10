@@ -31,17 +31,30 @@ description: >
 
 inputs:
   folder:
-    description: 'Folder containing the plugin files (should include manifest.json)'
+    description: >
+      Folder containing the plugin files (should include manifest.json).
+      
+      If not provided, it is assumed the plugin file is in the current working directory. If you haven't changed directory before calling this action, that would be the root of your repository.
     required: false
     default: '.'
   package_filename:
     description: >
-      Optional package filename. If not provided, the action will read manifest.json
-      from the specified folder and construct a filename as <plugin name>_v<version>.txt,
-      with dots in the version replaced by underscores.
+      Optional package filename.
+      
+      If not provided, the action will read manifest.json from the specified plugin source folder and construct a filename as <plugin name>_v<version>.txt, with dots in the version replaced by underscores.
     required: false
+  github_token:
+    description: >
+      This option defaults to the repository scoped GitHub Token.
+      
+      If you need more permissions for things such as deploying to another repository, you can add a Personal Access Token (PAT) here.
+      
+      [Learn more about creating and secrets here.](https://help.github.com/en/actions/automating-your-workflow-with-github-actions/creating-and-using-encrypted-secrets)
+    required: false
+    default: ${{ github.token }}
   release_files:
-    description: 'If set to "true", automatically add the generated files to the release'
+    description: >
+      If set to "true", automatically add the generated files to the release. 
     required: false
     default: 'false'
 
@@ -70,7 +83,7 @@ runs:
         echo "CHECKSUM_URL=$CHECKSUM_URL" >> $GITHUB_ENV
       shell: bash
       env:
-        GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        GH_TOKEN: ${{ inputs.github_token }}
 
     - name: Generate Temporary Filenames
       id: gen_uuid
@@ -131,4 +144,4 @@ runs:
           ${{ env.OUTPUT_FILE }}
           ${{ env.OUTPUT_FILE }}.sha256sum
       env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        GITHUB_TOKEN: ${{ inputs.github_token }}
