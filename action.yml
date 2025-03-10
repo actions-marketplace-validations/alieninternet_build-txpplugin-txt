@@ -132,7 +132,6 @@ runs:
           OUTPUT_FILE="${PLUGIN_NAME}_v${VERSION}.txt"
         fi
         echo "OUTPUT_FILE=${OUTPUT_FILE}" >> $GITHUB_ENV
-        echo "::set-output name=output_file::${OUTPUT_FILE}"
       shell: bash
 
     - name: Run Plugin Packager
