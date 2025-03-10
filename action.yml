@@ -24,6 +24,7 @@
 # =============================================================================
 
 name: Build and Release Plugin
+name: Build and Release Plugin
 
 on:
   push:
@@ -38,9 +39,24 @@ jobs:
       - name: Checkout Repository
         uses: actions/checkout@v4
 
-      - name: Download Packager PHAR
+      - name: Get Latest Packager Release Info
         run: |
-          curl -L -o ais_txpplugin_packager.phar https://github.com/alieninternet/ais_txpplugin_packager/releases/latest/download/ais_txpplugin_packager.phar
+          LATEST_RELEASE=$(gh api repos/alieninternet/ais_txpplugin_packager/releases/latest)
+          PHAR_URL=$(echo "$LATEST_RELEASE" | jq -r '.assets[] | select(.name | endswith(".phar")) | .browser_download_url')
+          CHECKSUM_URL=$(echo "$LATEST_RELEASE" | jq -r '.assets[] | select(.name | endswith(".sha256sum")) | .browser_download_url')
+          echo "PHAR_URL=$PHAR_URL" >> $GITHUB_ENV
+          echo "CHECKSUM_URL=$CHECKSUM_URL" >> $GITHUB_ENV
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Download Packager PHAR and Checksum
+        run: |
+          curl -L -o ais_txpplugin_packager.phar "$PHAR_URL"
+          curl -L -o ais_txpplugin_packager.phar.sha256 "$CHECKSUM_URL"
+
+      - name: Verify Packager Integrity
+        run: |
+          sha256sum -c ais_txpplugin_packager.phar.sha256
 
       - name: Make Packager Executable
         run: chmod +x ais_txpplugin_packager.phar
