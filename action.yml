@@ -78,7 +78,7 @@ runs:
           | jq -r 'map(select(.tag_name | startswith("v0."))) | sort_by(.published_at) | last')
         echo "$RELEASE" > release.json
         PHAR_URL=$(jq -r '.assets[] | select(.name | endswith(".phar")) | .browser_download_url' release.json)
-        CHECKSUM_URL=$(jq -r '.assets[] | select(.name | endswith(".sha256sum")) | .browser_download_url' release.json)
+        CHECKSUM_URL=$(jq -r '.assets[] | select(.name | endswith(".sha256")) | .browser_download_url' release.json)
         echo "PHAR_URL=$PHAR_URL" >> $GITHUB_ENV
         echo "CHECKSUM_URL=$CHECKSUM_URL" >> $GITHUB_ENV
       shell: bash
@@ -103,7 +103,18 @@ runs:
 
     - name: Verify Packager Integrity
       run: |
-        sha256sum -c "${{ env.CHECKSUM_FILE }}"
+        # Compute the checksum of the downloaded PHAR file
+	computed_checksum=$(sha256sum "${{ env.PHAR_FILE }}" | awk '{print $1}')
+	# Extract the expected checksum from the downloaded checksum file (ignoring the filename since we changed it)
+	expected_checksum=$(awk '{print $1}' "${{ env.CHECKSUM_FILE }}")
+        echo "Computed checksum: $computed_checksum"
+	echo "Expected checksum: $expected_checksum"
+	if [ "$computed_checksum" != "$expected_checksum" ]; then
+	  echo "PHAR checksum verification failed"
+	  exit 1
+	else
+	  echo "PHAR checksum OK"
+	fi
       shell: bash
 
     - name: Make Packager Executable
