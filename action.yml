@@ -24,23 +24,25 @@
 # =============================================================================
 
 name: Build and Release Plugin
-name: Build and Release Plugin
+name: Pack and Release Textpattern Plugin
 
-# Trigger this workflow on any new tag push or manually
+# This workflow is designed to be reusable by other repositories
 on:
-  push:
-    tags:
-      - '*'
-  workflow_dispatch:
+  workflow_call:
     inputs:
       folder:
         description: 'Folder to package'
         required: false
         default: '.'
+        type: string
       dry_run:
         description: 'Skip release upload (for testing)'
         required: false
         default: 'false'
+        type: string
+    secrets:
+      GITHUB_TOKEN:
+        required: true
 
 jobs:
   build:
@@ -88,7 +90,7 @@ jobs:
       # Run the packager over the specified directory
       - name: Run Plugin Packager
         run: |
-          ./ais_txpplugin_packager.phar package ${{ github.event.inputs.folder || '.' }}
+          ./ais_txpplugin_packager.phar package ${{ inputs.folder }}
 
       # Calculate SHA256 checksum of the generated plugin file
       - name: Calculate SHA256 Checksum
@@ -102,7 +104,7 @@ jobs:
 
       # Upload the plugin and its checksum to the release (unless dry_run)
       - name: Upload Release Assets
-        if: ${{ github.event.inputs.dry_run != 'true' }}
+        if: ${{ inputs.dry_run != 'true' }}
         uses: softprops/action-gh-release@v2
         with:
           tag_name: ${{ steps.get_tag.outputs.tag }}
