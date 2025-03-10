@@ -2,6 +2,17 @@
 # Simple example workflow using alieninternet/build-txpplugin-txt GitHub action
 # =============================================================================
 #
+# FAQ:
+#
+#  Q: Why is the plugin name wrong in the package output?
+#  A: The plugin name is the same as the repository name, by default.
+#     You can override this by specifying your own package_filename value
+#
+#  Q: Why is the version number in the package filename is wrong?
+#  A: The version number comes from your plugin's manifest.json by default.
+#     Check there, maybe it has not been updated.
+#
+#
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
 # the Free Software Foundation, either version 3 of the License, or
