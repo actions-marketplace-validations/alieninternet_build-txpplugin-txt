@@ -35,6 +35,10 @@ on:
         required: false
         default: '.'
         type: string
+      package_version:
+        description: 'Version of the package (defaults to version from manifest.json)'
+        required: false
+        type: string
       dry_run:
         description: 'Skip release upload (for testing)'
         required: false
@@ -79,11 +83,20 @@ jobs:
       - name: Make Packager Executable
         run: chmod +x ais_txpplugin_packager.phar
 
-      # Extract version from manifest.json and construct expected output filename
-      - name: Extract Version and Construct Filename
+      # Extract version from manifest.json if not provided
+      - name: Determine Package Version
         run: |
-          PACKAGE_NAME=$(jq -r '.name' manifest.json)
-          VERSION=$(jq -r '.version' manifest.json | sed 's/\./_/g')
+          if [ -z "${{ inputs.package_version }}" ]; then
+            VERSION=$(jq -r '.version' ${{ inputs.folder }}/manifest.json | sed 's/\./_/g')
+          else
+            VERSION=${{ inputs.package_version }}
+          fi
+          echo "VERSION=$VERSION" >> $GITHUB_ENV
+
+      # Construct expected output filename
+      - name: Construct Output Filename
+        run: |
+          PACKAGE_NAME=$(jq -r '.name' ${{ inputs.folder }}/manifest.json)
           OUTPUT_FILE="${PACKAGE_NAME}_v${VERSION}.txt"
           echo "OUTPUT_FILE=$OUTPUT_FILE" >> $GITHUB_ENV
 
