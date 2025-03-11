@@ -68,8 +68,6 @@ jobs:
 
 ### Outputs
 
-<details><summary><h4><code></code></h4></summary>
-  The filename of the package that was built.
-
+<details><summary><h4><code>output_file</code></h4> - The file name of the package that was built</summary>
   Append `.sha256` to this for the generated SHA-256 checksum file.
 </details>
