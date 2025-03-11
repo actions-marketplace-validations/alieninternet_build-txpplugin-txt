@@ -45,17 +45,19 @@ jobs:
 <details><summary><h4><code>folder</code> - Folder containing the plugin files</h4></summary>
   Folder containing the plugin files (should include manifest.json).
 
-  If not provided, it is assumed the plugin file is in the current working directory. If you haven't changed directory before calling this action, that would be the root of your repository.
+  If not provided, it is assumed the plugin file is in the current working directory.
+  If you haven't changed directory before calling this action, that would be the root of your repository.
 </details>
 
 <details><summary><h4><code>package_filename</code> (Optional) - Package filename</h4></summary>
   Optional package filename.
 
-  If not provided, the action will read manifest.json from the specified plugin source folder and construct a filename as <plugin name>_v<version>.txt, with dots in the version replaced by underscores.
+  If not provided, the action will read manifest.json from the specified plugin source folder and construct a filename as 
+  <code>&lt;plugin name&gt;_v&lt;version&gt;.txt</code>, with dots in the version replaced by underscores.
 </details>
 
 <details><summary><h4><code>release_files</code> (Optional) - Release files?</h4></summary>
-  If set to "true", automatically add the generated files to the release.
+  If set to <code>true</code>, automatically add the generated files to the release.
 </details>
 
 <details><summary><h4><code>github_token</code> (Optional) - GitHub token</h4></summary>
@@ -69,5 +71,5 @@ jobs:
 ### Outputs
 
 <details><summary><h4><code>output_file</code></h4> - The file name of the package that was built</summary>
-  Append `.sha256` to this for the generated SHA-256 checksum file.
+  Append <code>.sha256</code> to this for the generated SHA-256 checksum file.
 </details>
