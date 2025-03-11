@@ -37,7 +37,7 @@ inputs:
       Folder containing the plugin files (should include manifest.json).
       
       If not provided, it is assumed the plugin file is in the current working directory. If you haven't changed directory before calling this action, that would be the root of your repository.
-    required: false
+    required: true
     default: '.'
   package_filename:
     description: >
@@ -52,7 +52,7 @@ inputs:
       If you need more permissions for things such as deploying to another repository, you can add a Personal Access Token (PAT) here.
       
       [Learn more about creating and secrets here.](https://help.github.com/en/actions/automating-your-workflow-with-github-actions/creating-and-using-encrypted-secrets)
-    required: false
+    required: true
     default: ${{ github.token }}
   release_files:
     description: >
