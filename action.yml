@@ -24,7 +24,7 @@
 # =============================================================================
 
 name: 'Build Textpattern Plugin TXT Package'
-description: 'Package a Textpattern plugin as a TXT package, and optionally add package to the release that triggered the workflow.
+description: 'Package a Textpattern plugin as a TXT package, and optionally add package to the release that triggered the workflow.'
 author: 'alieninternet'
 
 branding:
