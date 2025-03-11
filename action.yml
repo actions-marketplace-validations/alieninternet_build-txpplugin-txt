@@ -23,12 +23,13 @@
 # @link	      https://github.com/alieninternet/build-txpplugin-txt
 # =============================================================================
 
-name: Build Textpattern Plugin TXT Package
-description: >
-  Package a Textpattern plugin as a TXT package, and optionally add
-  the resulting package to the release that triggered the workflow.
-icon: package
-color: purple
+name: 'Build Textpattern Plugin TXT Package'
+description: 'Package a Textpattern plugin as a TXT package, and optionally add package to the release that triggered the workflow.
+author: 'alieninternet'
+
+branding:
+  icon: package
+  color: purple
 
 inputs:
   folder:
