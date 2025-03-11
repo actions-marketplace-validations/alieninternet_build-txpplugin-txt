@@ -45,6 +45,11 @@ inputs:
       
       If not provided, the action will read manifest.json from the specified plugin source folder and construct a filename as <plugin name>_v<version>.txt, with dots in the version replaced by underscores.
     required: false
+  release_files:
+    description: >
+      If set to "true", automatically add the generated files to the release. 
+    required: false
+    default: 'false'
   github_token:
     description: >
       This option defaults to the repository scoped GitHub Token.
@@ -54,11 +59,6 @@ inputs:
       [Learn more about creating and secrets here.](https://help.github.com/en/actions/automating-your-workflow-with-github-actions/creating-and-using-encrypted-secrets)
     required: true
     default: ${{ github.token }}
-  release_files:
-    description: >
-      If set to "true", automatically add the generated files to the release. 
-    required: false
-    default: 'false'
 
 outputs:
   output_file:
