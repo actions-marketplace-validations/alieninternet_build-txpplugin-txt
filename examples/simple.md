@@ -39,7 +39,7 @@ The following assumptions are made:
 
 ### Installation steps
 
-1. Copy `simple.md` into your repository's workflow folder, e.g.
+1. Copy [`simple.md`](https://github.com/alieninternet/build-txpplugin-txt/blob/main/examples/simple.yml) into your repository's workflow folder, e.g.
    `REPOSITORY/.github/workflows/release.yml`
 
 2. If your Textpattern plugin files (PHP file, textpacks, etc) are not
