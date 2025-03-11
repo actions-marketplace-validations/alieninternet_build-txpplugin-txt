@@ -1,4 +1,4 @@
-# `alieninternet/build-txpplugin-txt` - Build and release Textpattern plugin packages
+# `alieninternet/build-txpplugin-txt` <br /> Build and release Textpattern plugin packages
 
 Package a Textpattern plugin as a TXT package, and optionally add package to the release that triggered the workflow.
 
