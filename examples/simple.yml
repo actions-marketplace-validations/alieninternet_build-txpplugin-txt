@@ -1,16 +1,9 @@
 # =============================================================================
-# Simple example workflow using alieninternet/build-txpplugin-txt GitHub action
+# A very simple build and release example using alieninternet/build-txpplugin-txt
 # =============================================================================
 #
-# FAQ:
-#
-#  Q: Why is the plugin name wrong in the package output?
-#  A: The plugin name is the same as the repository name, by default.
-#     You can override this by specifying your own package_filename value
-#
-#  Q: Why is the version number in the package filename is wrong?
-#  A: The version number comes from your plugin's manifest.json by default.
-#     Check there, maybe it has not been updated.
+# Instructions can be found here:
+#  <https://www.github.com/alieninternet/build_txpplugin_txt/examples/simple.md>
 #
 #
 # This program is free software: you can redistribute it and/or modify
@@ -44,15 +37,23 @@ jobs:
   build:
     runs-on: ubuntu-latest
     steps:
-      # Check out the repository
+      #
+      # Check out this repository
+      #
       - name: Check-out repository
         uses: actions/checkout@v4
 
-      # Build the plugin_v.txt package and an sha256sum hash file, and publish it to the release
-      # folder: The folder where the plugin source files live, defaults to '.' in this case (the root of the repository)
-      # package_filename: When omitted defaults to generating the package filename from the plugin's manifest.json file
-      # release_files: When set to true, files will be published to the release triggering the build (default is false)
+      #
+      # Build the plugin_v.txt package and an sha256sum hash file, and publish it to the release.
+      #
+      # Parameters:
+      #   folder: The folder where the plugin source files live, defaults to '.' in this case (the root of the repository)
+      #   release_files: When set to true, files will be published to the release triggering the build (default is false)
+      #
+      # For more information on available parameters, see https://github.com/alieninternet/build-txpplugin-txt/blob/main/README.md
+      #
       - name: Build and release package
-        uses: alieninternet/build-txpplugin-txt@main
+        uses: alieninternet/build-txpplugin-txt@v1
         with:
+          folder: '.'
           release_files: 'true'
