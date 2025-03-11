@@ -25,9 +25,10 @@
 
 name: Build Textpattern Plugin TXT Package
 description: >
-  Downloads and executes the Textpattern plugin packager to produce a plugin package.
-  Optionally, it can add the resulting files (the TXT package and its SHA256 checksum)
-  to the release that triggered the workflow.
+  Package a Textpattern plugin as a TXT package, and optionally add
+  the resulting package to the release that triggered the workflow.
+icon: package
+color: purple
 
 inputs:
   folder:
